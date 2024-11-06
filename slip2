@@ -1,0 +1,74 @@
+Q1
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <pwd.h>
+#include <grp.h>
+
+void print_file_permissions(struct stat fileStat) {
+    printf("File permissions: ");
+    printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
+    printf( (fileStat.st_mode & S_IRUSR) ? "r" : "-");
+    printf( (fileStat.st_mode & S_IWUSR) ? "w" : "-");
+    printf( (fileStat.st_mode & S_IXUSR) ? "x" : "-");
+    printf( (fileStat.st_mode & S_IRGRP) ? "r" : "-");
+    printf( (fileStat.st_mode & S_IWGRP) ? "w" : "-");
+    printf( (fileStat.st_mode & S_IXGRP) ? "x" : "-");
+    printf( (fileStat.st_mode & S_IROTH) ? "r" : "-");
+    printf( (fileStat.st_mode & S_IWOTH) ? "w" : "-");
+    printf( (fileStat.st_mode & S_IXOTH) ? "x" : "-");
+    printf("\n");
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <file_path>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    struct stat fileStat;
+    if (stat(argv[1], &fileStat) < 0) {
+        perror("stat");
+        exit(EXIT_FAILURE);
+    }
+    printf("File: %s\n", argv[1]);
+    printf("Inode number: %lu\n", (unsigned long)fileStat.st_ino);
+    printf("Number of hard links: %lu\n", (unsigned long)fileStat.st_nlink);
+    printf("File size: %ld bytes\n", (long)fileStat.st_size);
+    printf("File owner: %s\n", getpwuid(fileStat.st_uid)->pw_name);
+    printf("File group: %s\n", getgrgid(fileStat.st_gid)->gr_name);
+
+    print_file_permissions(fileStat);
+    printf("Last access time: %s", ctime(&fileStat.st_atime));
+    printf("Last modification time: %s", ctime(&fileStat.st_mtime));
+    printf("Last status change time: %s", ctime(&fileStat.st_ctime));
+    return 0;
+}
+
+Q2
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+volatile sig_atomic_t sigint_count = 0; 
+
+void handle_sigint(int sig) {
+    if (sigint_count == 0) {
+        printf("Caught Ctrl-C (SIGINT) for the first time. Press Ctrl-C again to exit.\n");
+        sigint_count++;
+    } else {
+        printf("Caught Ctrl-C again. Exiting...\n");
+        exit(0);
+    }
+}
+
+int main() {
+    signal(SIGINT, handle_sigint);
+    while (1) {
+        printf("Running... Press Ctrl-C.\n");
+        sleep(1);
+    }
+    return 0;
+}
+
