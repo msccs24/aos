@@ -1,0 +1,100 @@
+Q1
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <string.h>
+#define MONTH_COUNT 12
+
+int is_file_in_month(struct stat file_stat, int month) {
+    struct tm *time_info;
+    time_info = localtime(&file_stat.st_mtime); 
+    return (time_info->tm_mon + 1) == month; 
+}
+
+int main() {
+    DIR *dir;
+    struct dirent *entry;
+    struct stat file_stat;
+    int month;
+
+    printf("Enter the month (1-12): ");
+    scanf("%d", &month);
+    if (month < 1 || month > MONTH_COUNT) {
+        printf("Invalid month. Please enter a value between 1 and 12.\n");
+        exit(EXIT_FAILURE);
+    }
+    dir = opendir(".");
+    if (dir == NULL) {
+        perror("Unable to open directory.");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Files created/modified in month %d:\n", month);
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+        if (stat(entry->d_name, &file_stat) == -1) {
+            perror("stat failed");
+            continue;
+        }
+        if (is_file_in_month(file_stat, month)) {
+            printf("%s\n", entry->d_name); // Print file name
+        }
+    }
+    closedir(dir);
+    return 0;
+}
+
+Q2
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/times.h>
+#include <time.h>
+
+int main() {
+    int n;
+    printf("Enter the number of child processes to create: ");
+    scanf("%d", &n);
+
+    pid_t pid;
+    struct tms time_info;
+    clock_t start_time, end_time;
+    long total_user_time = 0, total_kernel_time = 0;
+
+    for (int i = 0; i < n; i++) {
+        pid = fork();
+        if (pid < 0) {
+            perror("Fork failed");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid == 0) {
+            sleep(2);
+            start_time = times(&time_info);
+            end_time = times(&time_info);
+            printf("Child %d - User time: %ld clock ticks, Kernel time: %ld clock ticks\n", 
+                   getpid(), time_info.tms_utime, time_info.tms_stime);
+            exit(0);
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        wait(NULL); 
+    }
+
+    for (int i = 0; i < n; i++) {
+        times(&time_info);
+        total_user_time += time_info.tms_utime;
+        total_kernel_time += time_info.tms_stime;
+    }
+    printf("\nTotal cumulative time spent by all child processes:\n");
+    printf("Total User time: %ld clock ticks\n", total_user_time);
+    printf("Total Kernel time: %ld clock ticks\n", total_kernel_time);
+    return 0;
+}
