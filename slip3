@@ -1,0 +1,89 @@
+Q1
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+void print_file_type(struct stat fileStat) {
+    printf("File type: ");
+    if (S_ISREG(fileStat.st_mode))
+        printf("Regular file\n");
+    else if (S_ISDIR(fileStat.st_mode))
+        printf("Directory\n");
+    else if (S_ISLNK(fileStat.st_mode))
+        printf("Symbolic link\n");
+    else if (S_ISCHR(fileStat.st_mode))
+        printf("Character device\n");
+    else if (S_ISBLK(fileStat.st_mode))
+        printf("Block device\n");
+    else if (S_ISFIFO(fileStat.st_mode))
+        printf("FIFO/pipe\n");
+    else if (S_ISSOCK(fileStat.st_mode))
+        printf("Socket\n");
+    else
+        printf("Unknown\n");
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <file_path>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    struct stat fileStat;
+    if (stat(argv[1], &fileStat) < 0) {
+        perror("stat");
+        exit(EXIT_FAILURE);
+    }
+    printf("Inode number: %lu\n", (unsigned long)fileStat.st_ino);
+    print_file_type(fileStat);
+    return 0;
+}
+
+Q2
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
+
+pid_t child_pid = 0; 
+void handle_alarm(int sig) {
+    printf("Alarm triggered! Child process taking too long, terminating child process.\n");
+    if (child_pid > 0) {
+        kill(child_pid, SIGKILL); // Kill the child process
+    }
+}
+
+void handle_sigchld(int sig) {
+    int status;
+    pid_t pid = waitpid(child_pid, &status, WNOHANG);
+    if (pid == child_pid) {
+        printf("Child process terminated.\n");
+        alarm(0); // Cancel any pending alarm
+    }
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <command> [args...]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    signal(SIGALRM, handle_alarm);
+    signal(SIGCHLD, handle_sigchld);
+    child_pid = fork(); 
+
+    if (child_pid < 0) {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    } else if (child_pid == 0) {
+        execvp(argv[1], &argv[1]); 
+        perror("execvp"); 
+        exit(EXIT_FAILURE);
+    } else {
+        alarm(5); 
+        while (1) {
+            pause(); 
+        }
+    }
+    return 0;
+}
