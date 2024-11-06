@@ -1,0 +1,64 @@
+Q1
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+int main() {
+    DIR *dir;
+    struct dirent *entry;
+    int file_count = 0;
+
+    dir = opendir(".");
+    if (dir == NULL) {
+        perror("Unable to open directory.");
+        exit(EXIT_FAILURE);
+    }
+    printf("Files and directories in the current directory:\n");
+
+    while ((entry = readdir(dir)) != NULL) {
+        printf("%s\n", entry->d_name); 
+        file_count++; 
+    }
+    closedir(dir);
+    printf("\nTotal number of files and directories: %d\n", file_count);
+    return 0;
+}
+
+Q2 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#define BUFFER_SIZE 100
+
+int main() {
+    int pipe_fd[2]; // pipe_fd[0] - read end, pipe_fd[1] - write end
+    pid_t pid;
+    char buffer[BUFFER_SIZE];
+
+    if (pipe(pipe_fd) == -1) {
+        perror("Pipe creation failed");
+        exit(EXIT_FAILURE);
+    }
+    pid = fork();
+    if (pid < 0) {
+        perror("Fork failed");
+        exit(EXIT_FAILURE);
+    }
+    if (pid == 0) {
+        close(pipe_fd[0]); 
+        write(pipe_fd[1], "Hello World\n", strlen("Hello World\n"));
+        write(pipe_fd[1], "Hello SPPU\n", strlen("Hello SPPU\n"));
+        write(pipe_fd[1], "Linux is Funny\n", strlen("Linux is Funny\n"));
+        close(pipe_fd[1]); 
+        exit(0); 
+    } else {
+        close(pipe_fd[1]); 
+        printf("Messages received from child process:\n");
+        while (read(pipe_fd[0], buffer, BUFFER_SIZE) > 0) {
+            printf("%s", buffer); 
+        }
+        close(pipe_fd[0]); 
+        wait(NULL);
+    }
+    return 0;
+}
