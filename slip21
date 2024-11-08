@@ -1,0 +1,108 @@
+Q1
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<dirent.h>
+#include<sys/stat.h>
+
+int main(int argc,char *argv[])
+{
+  DIR *dp;
+  int cntr1=0,cntr2=0;
+  struct stat buf;
+  struct dirent  *dirp;
+  int flag;
+  char size;
+  
+  if(argc!=2)
+      printf("Usage:is a directory name");
+    
+  if((dp=opendir(argv[1]))==NULL)
+      printf("Cannot open %s",argv[1]);
+    
+  while((dirp=readdir(dp))!=NULL)
+  {
+     printf("%s\n",dirp->d_name);
+     stat(dirp->d_name,&buf);
+     if(S_ISDIR(buf.st_mode))
+     {
+        printf("This is reqular file\n");
+        cntr1++;
+     }
+     if(S_ISDIR(buf.st_mode))
+     {
+        printf("This is directory\n");
+        cntr2++;
+     }
+   } 
+   printf("Total no. of reqular file:%d\n",cntr1);
+   printf("Total no. of directory file:%d\n",cntr2);
+   closedir(dp);
+   exit(0);
+}
+
+ Q2
+    #include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<sys/stat.h>
+#include "ass8sort.c"
+
+int main(int argc,char *argv[])
+{
+  int i,j;
+  struct stat buf;
+  int size,s[30],ss[30];
+  for(i=1;i<argc;i++)
+  {
+     printf("File is %s\n",argv[i]);
+     if(stat(argv[i],&buf)<0)
+     {
+        printf("error");
+        continue;
+     }
+     if(S_ISREG(buf.st_mode))
+     {
+       printf("This is reqular file\n");
+       size=(buf.st_size);
+       
+       printf("Size of file :%d\n",size);
+       printf("\n\n");
+     }
+     s[i]=size;
+     ss[i]=size;
+  }
+  sort(s,argc,argv);
+}
+
+
+int sort(int a[],int size,char *av[])
+{
+   int Array[50],i,j,temp;
+   for(i=1;i<size;j++)
+   {
+      for(j=i+1;j<size;j++)
+      {
+         if(a[i]>a[j])
+         {
+            temp=a[i];
+            a[i]=a[j];
+            a[j]=temp;
+         }
+         if(av[i]>av[j])
+         {  
+             temp=av[i];
+             av[i]=av[j];
+             av[j]=temp;
+         }
+       }
+    }
+    printf("\n Size of files in Ascending order are:\n");
+    for(i=1;i<size;i++)
+    {
+       printf("\n%d\t",a[i]);
+       printf("%s\n",av[i]);
+    }
+    return 0;
+}
+   
