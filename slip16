@@ -1,40 +1,41 @@
 Q1
-#include <stdio.h>
-#include <stdlib.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <time.h>
-#include <string.h>
-
-int main() {
-    int target_month, target_year;
-    struct dirent *entry;
-    struct stat file_stat;
-    struct tm *file_time;
-    printf("Enter the target month (1-12): ");
-    scanf("%d", &target_month);
-    printf("Enter the target year (e.g., 2024): ");
-    scanf("%d", &target_year);
-
-    DIR *dir = opendir(".");
-    if (!dir) {
-        perror("Error opening directory");
-        return 1;
-    }
-    printf("Files created in %d/%d:\n", target_month, target_year);
-    while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_DIR) {
-            continue;
-        }
-        if (stat(entry->d_name, &file_stat) == -1) {
-            perror("Error getting file information");
-            continue;
-        }
-        file_time = localtime(&file_stat.st_mtime);
-        if (file_time->tm_mon + 1 == target_month && file_time->tm_year + 1900 == target_year) {
-            printf("%s\n", entry->d_name);
-        }
-    }
-    closedir(dir);
-    return 0;
-}
+#include<stdio.h>
+#include<stddef.h>
+#include<dirent.h>
+#include<string.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<time.h>
+#include<stdlib.h>
+int main(int argc,char *argv[])
+{
+   char in[100],st[100],*ch,*ch1,c,buff[512];
+   DIR *dp;
+   int i;
+   struct dirent *ep;
+   struct stat sb;
+   char mon[100];
+   if((dp=opendir(argv[1]))==NULL)
+       printf("Cannot open %s",argv[1]);
+   if(dp!=NULL)
+   {
+       while(ep=readdir(dp))
+       {
+         if(stat(ep->d_name,&sb)==-1)
+         {
+           perror("stat");
+           exit(EXIT_SUCCESS);
+         }
+         strcpy(mon,ctime(&sb.st_ctime));
+         ch=strtok(mon," ");
+         ch=strtok(NULL," ");
+         ch1=strtok(ch," ");
+         if((strcmp(ch1,argv[2]))==0)
+         {
+             printf("%s \t \t %s",ep->d_name,ctime(&sb.st_ctime));         
+         }
+       }
+         (void)closedir(dp);
+      }
+      return 0;
+   }
