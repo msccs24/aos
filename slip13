@@ -1,0 +1,70 @@
+Q1
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+void child_process() {
+    printf("Child process started with PID: %d\n", getpid());
+    while (1) {
+        printf("Child process is running...\n");
+        sleep(1);
+    }
+}
+int main() {
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("Fork failed");
+        return 1;
+    }
+    if (pid == 0) {
+        // Child process
+        child_process();
+    } else {
+        printf("Parent process with PID: %d\n", getpid());
+        sleep(2);
+        printf("Parent sending SIGSTOP to child...\n");
+        kill(pid, SIGSTOP);
+        sleep(3);
+        printf("Parent sending SIGCONT to child...\n");
+        kill(pid, SIGCONT);
+        sleep(3);
+        printf("Parent terminating child process...\n");
+        kill(pid, SIGKILL);
+
+        wait(NULL);
+        printf("Child process terminated\n");
+    }
+    return 0;
+}
+
+Q2
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <dirent.h>
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        printf("Usage: %s <prefix>\n", argv[0]);
+        return 1;
+    }
+
+    char *prefix = argv[1];
+    struct dirent *entry;
+    DIR *dir = opendir(".");
+    if (!dir) {
+        perror("Error opening directory");
+        return 1;
+    }
+    printf("Files beginning with '%s':\n", prefix);
+    while ((entry = readdir(dir)) != NULL) {
+        if (strncmp(entry->d_name, prefix, strlen(prefix)) == 0) {
+            printf("%s\n", entry->d_name);
+        }
+    }
+    closedir(dir);
+    return 0;
+}
