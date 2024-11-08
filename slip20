@@ -1,0 +1,76 @@
+Q1
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
+void child_process() {
+    while (1) {
+        printf("Child process is running (PID: %d)\n", getpid());
+        sleep(1); 
+    }
+}
+int main() {
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("Fork failed");
+        exit(1);
+    }
+    if (pid == 0) {
+        child_process();
+    } else {
+        printf("Parent process (PID: %d) created child process (PID: %d)\n", getpid(), pid);
+        sleep(3);
+        printf("Parent is sending SIGSTOP to child (PID: %d)\n", pid);
+        kill(pid, SIGSTOP);
+        sleep(3);
+
+        printf("Parent is sending SIGCONT to child (PID: %d)\n", pid);
+        kill(pid, SIGCONT);
+        sleep(3);
+        printf("Parent is sending SIGTERM to terminate child (PID: %d)\n", pid);
+        kill(pid, SIGTERM);
+
+        wait(NULL);
+        printf("Child process terminated.\n");
+    }
+    return 0;
+}
+
+Q2
+#include<stdio.h>
+#include<stdlib.h>
+#include<sys/stat.h>
+int main(int argc,char*argv[])
+{
+ int i;
+ struct stat buf;
+ char *ptr;
+ for(i=1;i<argc;i++)
+ {
+   printf("%s",argv[i]);
+   if(stat(argv[i],&buf)<0)
+   {
+       printf("Error\n");
+       continue;
+   }
+   if(S_ISREG(buf.st_mode))
+      printf("\n This is Reqular file\n");
+    
+   else if(S_ISDIR(buf.st_mode))
+      printf("\n This is Directory file\n");
+     
+   else if(S_ISCHR(buf.st_mode))
+      printf("\n This is Character file\n");
+      
+   else if(S_ISBLK(buf.st_mode))
+      printf("\n This is Block file\n");
+      
+   else if(S_ISFIFO(buf.st_mode))
+      printf("\n This is FIFO file\n");
+      
+   else
+      printf(" Unknown Mode\n");
+   }   
+}
+    
