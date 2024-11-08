@@ -24,3 +24,31 @@ int main() {
     printf("\nTotal number of files: %d\n", file_count);
     return 0;
 }
+
+Q2
+#include<stdio.h>
+#include<unistd.h>
+
+int main()
+{
+    int fd[2],dupfd;
+    char *fname1 ="ls";
+    char *fname2 ="ws";
+    char *arg1 ="-l";
+    pipe(fd);
+
+    if(!fork())
+    {
+        close(1);
+        dup(fd[1]);
+        close(fd[0]);
+        execlp(fname1,fname1,arg1,NULL);
+    }
+    else
+    {
+        close(0);
+        dup(fd[0]);
+        close(fd[1]);
+        execlp(fname1,fname2,arg1,NULL);
+    }
+}
