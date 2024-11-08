@@ -1,0 +1,77 @@
+Q1
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <sys/stat.h>
+
+int main() {
+    long min_size;
+    struct dirent *entry;
+    struct stat file_stat;
+    printf("Enter minimum file size in bytes: ");
+    scanf("%ld", &min_size);
+
+    DIR *dir = opendir(".");
+    if (!dir) {
+        perror("Error opening directory");
+        return 1;
+    }
+    printf("Files larger than %ld bytes:\n", min_size);
+    while ((entry = readdir(dir)) != NULL) {
+        // Skip directories
+        if (entry->d_type == DT_DIR) {
+            continue;
+        }
+        if (stat(entry->d_name, &file_stat) == -1) {
+            perror("Error getting file information");
+            continue;
+        }
+        if (file_stat.st_size > min_size) {
+            printf("%s (%ld bytes)\n", entry->d_name, file_stat.st_size);
+        }
+    }
+    closedir(dir);
+    return 0;
+}
+
+Q2
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
+pid_t child_pid = 0;
+
+void handle_sigchld(int sig) {
+    int status;
+    waitpid(child_pid, &status, 0);
+    if (WIFEXITED(status)) {
+        printf("Child process completed with exit code %d\n", WEXITSTATUS(status));
+    } else if (WIFSIGNALED(status)) {
+        printf("Child process was terminated by signal %d\n", WTERMSIG(status));
+    }
+    exit(0);
+}
+void handle_sigalrm(int sig) {
+    printf("Child process took too long. Terminating...\n");
+    kill(child_pid, SIGKILL); // Kill the child process
+}
+int main() {
+    signal(SIGCHLD, handle_sigchld); 
+    signal(SIGALRM, handle_sigalrm);  
+
+    child_pid = fork();
+    if (child_pid < 0) {
+        perror("Fork failed");
+        return 1;
+    }
+    if (child_pid == 0) {
+        execlp("sleep", "sleep", "10", (char *)NULL);
+        perror("execlp failed"); 
+        exit(1);
+    } else {
+        alarm(5);
+        pause();
+    }
+    return 0;
+}
