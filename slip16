@@ -35,6 +35,7 @@ int main(int argc,char *argv[])
              printf("%s \t \t %s",ep->d_name,ctime(&sb.st_ctime));         
          }
        }
+
          (void)closedir(dp);
       }
       return 0;
