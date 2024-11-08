@@ -29,4 +29,47 @@ int main() {
 }
 
 Q2
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("Usage: %s <file1> <file2> ...\n", argv[0]);
+        return 1;
+    }
+    int num_files = argc - 1;
+    long file_sizes[num_files];
+    char *file_names[num_files];
+
+    for (int i = 0; i < num_files; i++) {
+        FILE *file = fopen(argv[i + 1], "rb");
+        if (!file) {
+            perror("Error opening file");
+            return 1;
+        }
+        fseek(file, 0, SEEK_END);
+        file_sizes[i] = ftell(file);
+        file_names[i] = argv[i + 1];
+        fclose(file);
+    }
+    for (int i = 0; i < num_files - 1; i++) {
+        for (int j = 0; j < num_files - i - 1; j++) {
+            if (file_sizes[j] > file_sizes[j + 1]) {
+                long temp_size = file_sizes[j];
+                file_sizes[j] = file_sizes[j + 1];
+                file_sizes[j + 1] = temp_size;
+
+                char *temp_name = file_names[j];
+                file_names[j] = file_names[j + 1];
+                file_names[j + 1] = temp_name;
+            }
+        }
+    }
+
+    printf("Files in ascending order by size:\n");
+    for (int i = 0; i < num_files; i++) {
+        printf("%s (%ld bytes)\n", file_names[i], file_sizes[i]);
+    }
+    return 0;
+}
 
