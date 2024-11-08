@@ -24,41 +24,42 @@ int main() {
 }
 
 Q2 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#define BUFFER_SIZE 100
+#include<stdio.h>
+#include<unistd.h>
 
-int main() {
-    int pipe_fd[2]; // pipe_fd[0] - read end, pipe_fd[1] - write end
-    pid_t pid;
-    char buffer[BUFFER_SIZE];
-
-    if (pipe(pipe_fd) == -1) {
-        perror("Pipe creation failed");
-        exit(EXIT_FAILURE);
-    }
-    pid = fork();
-    if (pid < 0) {
-        perror("Fork failed");
-        exit(EXIT_FAILURE);
-    }
-    if (pid == 0) {
-        close(pipe_fd[0]); 
-        write(pipe_fd[1], "Hello World\n", strlen("Hello World\n"));
-        write(pipe_fd[1], "Hello SPPU\n", strlen("Hello SPPU\n"));
-        write(pipe_fd[1], "Linux is Funny\n", strlen("Linux is Funny\n"));
-        close(pipe_fd[1]); 
-        exit(0); 
-    } else {
-        close(pipe_fd[1]); 
-        printf("Messages received from child process:\n");
-        while (read(pipe_fd[0], buffer, BUFFER_SIZE) > 0) {
-            printf("%s", buffer); 
-        }
-        close(pipe_fd[0]); 
-        wait(NULL);
-    }
-    return 0;
-}
+int main()
+{
+  int pipefds[2];
+  int returnstatus;
+  char writemessage[3][20]={"Hello World","Hello Sppu","Linux is Funny"};
+  char readmessage[20];
+  returnstatus=pipe(pipefds);
+  
+  if(returnstatus==-1)
+  {
+    printf("Unable to create file|n");
+    return 1;
+  }
+  int child=fork();
+  if(child==0)
+  {
+    printf("child is writing to pipe_message 1 is %s\n",writemessage[0]);
+    printf("child is writing to pipe-message 2 is %s\n",writemessage[1]);
+    printf("child is writing to pipe-message 3 is %s\n",writemessage[2]);
+    
+    write(pipefds[1],writemessage[0],sizeof(writemessage[0]));
+    write(pipefds[1],writemessage[1],sizeof(writemessage[1]));
+    write(pipefds[1],writemessage[2],sizeof(writemessage[2]));
+  }
+  else
+  {
+    read(pipefds[0],readmessage,sizeof(readmessage));
+    printf("parent process is reading from pipe_message 1 is %s\n",readmessage);  
+    read(pipefds[0],readmessage,sizeof(readmessage));
+    printf("parent process is reading from pipe_message 2 is %s\n",readmessage);
+    read(pipefds[0],readmessage,sizeof(readmessage));
+    printf("parent process is reading from pipe_message 3 is %s\n",readmessage);
+  }
+  return 0;
+}    
+     
