@@ -1,0 +1,18 @@
+Q1
+#include <stdio.h>
+
+int main() {
+    FILE *file = freopen("output.txt", "w", stdout);
+    if (file == NULL) {
+        perror("Failed to open file");
+        return 1;
+    }
+    printf("This will be written to the file 'output.txt'.\n");
+    printf("Standard output has been redirected to this file.\n");
+
+    fclose(file);
+    printf("This will be printed to the terminal.\n");
+    return 0;
+}
+
+Q2
