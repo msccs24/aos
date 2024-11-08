@@ -14,7 +14,7 @@ int main() {
     }
     printf("Files in the current directory:\n");
     while ((entry = readdir(dir)) != NULL) {
-        // Skip the "." and ".." entries (current and parent directories)
+  
         if (entry->d_name[0] != '.') {
             printf("%s\n", entry->d_name);
             file_count++;
