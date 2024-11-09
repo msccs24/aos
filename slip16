@@ -40,3 +40,61 @@ int main(int argc,char *argv[])
       }
       return 0;
    }
+
+Q2
+
+#include<stdio.h>
+#include<signal.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/stat.h>
+
+void sighup();
+void sigint();
+void siguit();
+
+void main()
+{
+    int pid;
+    if((pid=fork())<0)
+    {
+        perror("fork");
+        exit(1);
+    }
+    if(pid==0)
+    {
+        signal(SIGHUP,sighup);
+        signal(SIGINT,sigint);
+        signal(SIGQUIT,sigquit);
+        for(;;);
+    }
+    else
+    {
+        printf("\n Parent : sending SIGHUP\n\n");
+        kill(pid,SIGHUP);
+        sleep(3);
+        printf("\n Parent : sending SIGINT\n\n");
+        kill(pid,SIGINT);
+        sleep(3);
+        printf("\n Parent : sending SIGQUIT\n\n");
+        kill(pid,SIGQUIT);
+        sleep(3);
+    }
+    return 0;
+}
+
+void sighup()
+{
+    signal(SIGHUP,sighup);
+    printf("Child, I have received a SIGHUP\n");
+}
+void sigint()
+{
+    signal(SIGINT,sigint);
+    printf("Child, I have received a SIGINT\n");
+}
+void sigquit()
+{
+    printf("My Daddy has Failed me !!!\n");
+    exit(0);
+}
